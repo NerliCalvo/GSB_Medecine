@@ -9,7 +9,7 @@ import android.widget.TextView;
 
 import java.util.List;
 
-public class MedicamentAdapter extends ArrayAdapter<Medicament> { // va etre en lien avec medoc et va permettre d'affecter a la vue les resultats elle est lié à la vue Medicament
+public class MedicamentAdapter extends ArrayAdapter<Medicament> { // va etre en lien avec medicament et va permettre d'affecter a la vue les resultats elle est lié à la vue Medicament
     public MedicamentAdapter(Context context, List<Medicament> medicaments) {
         super(context, 0, medicaments);
     }
@@ -21,10 +21,10 @@ public class MedicamentAdapter extends ArrayAdapter<Medicament> { // va etre en 
 
         // Check if an existing view is being reused, otherwise inflate the view
         if (convertView == null) {
-            convertView = LayoutInflater.from(getContext()).inflate(R.layout.item_medicament, parent, false);
+            convertView = LayoutInflater.from(getContext()).inflate(R.layout.item_medicament, parent, false); // lier medicament adapter a item medicament
         }
 
-        TextView tvCodeCIS = convertView.findViewById(R.id.tvCode_CIS);
+        TextView tvCodeCIS = convertView.findViewById(R.id.tvCode_CIS); // relie les compposants de ma vue avec des attributs de ma classe
         TextView tvDenomination = convertView.findViewById(R.id.tvDenomination);
         TextView tvForme_pharmaceutique = convertView.findViewById(R.id.tvForme_pharmaceutique);
         TextView tvVoies_dadministration = convertView.findViewById(R.id.tvVoies_dadministartion);
@@ -32,7 +32,7 @@ public class MedicamentAdapter extends ArrayAdapter<Medicament> { // va etre en 
         TextView tvStatut_Administratif = convertView.findViewById(R.id.tvStatut_Administratif);
         TextView tvNombre_Molecules = convertView.findViewById(R.id.tvNombre_Molecules);
 
-        tvCodeCIS.setText(String.valueOf(medicament.getCodeCIS()));
+        tvCodeCIS.setText(String.valueOf(medicament.getCodeCIS())); // on affecte des valeurs aux attributs on lui met ce qui est contenu dans ma liste, getCode cis c est une fonction qui est dans le classe medicament
         tvDenomination.setText(String.valueOf(medicament.getDenomination()));
         tvForme_pharmaceutique.setText(String.valueOf(medicament.getFormePharmaceutique()));
         tvVoies_dadministration.setText(String.valueOf(medicament.getVoiesAdmin()));

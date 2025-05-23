@@ -69,6 +69,7 @@
             android:layout_height="wrap_content"
             android:text="Deconnexion"
             android:id="@+id/btn_Deconnexion"
+            android:onClick="deconnexion"
         />
 
         <Button
@@ -76,6 +77,7 @@
             android:layout_height="wrap_content"
             android:text="Quitter l'application"
             android:id="@+id/btn_Quitter_l_application"
+            android:onClick="quitter"
         />
 </LinearLayout>
 

@@ -1,6 +1,9 @@
 package com.fr.gsb_medecine;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.View;
@@ -24,7 +27,7 @@ public class MainActivity extends AppCompatActivity { // la classe main activity
     private static final String PREF_NAME = "UserPrefs";// attribut de la class MainActivity
     private static final String KEY_USER_STATUS = "UserStatus";
     private EditText editTextDenomination,editTextFormepharmaceutique,editTextTitulaires, editTextDenominationsubstance;
-    private Button btnRechercher,btnDeconnexion,btnquitterapp;
+    private Button btnRechercher;
     private Spinner spinnerVoixdadministration;
     private ListView listviewResults;
     private DatabaseHelper dbHelper;
@@ -42,15 +45,20 @@ public class MainActivity extends AppCompatActivity { // la classe main activity
         editTextDenominationsubstance = findViewById(R.id.edit_text_Denomination_substance);
         spinnerVoixdadministration = findViewById(R.id.spinner_Voix_d_administration);
         btnRechercher = findViewById(R.id.btn_Rechercher);
-        btnDeconnexion = findViewById(R.id.btn_Deconnexion);
-        btnquitterapp = findViewById(R.id.btn_Quitter_l_application);
         listviewResults = findViewById(R.id.Listview_Results);
+
+        if (!isUserAuthenticated()) {
+            Intent intent = new Intent(this, Authentification.class); //class qui permet une redirection
+            startActivity(intent);
+            finish();
+        }
+
         dbHelper = new DatabaseHelper(this); //initialisation BDD
 
         // Set up the spinner with Voies_dadministration data // fonction qu'on apl qui permet de remplire les valeurs du spinner qui est la liste deroulante des voies admin
         setupVoiesAdminSpinner();
         // Set up the click listener for the search button
-        btnRechercher.setOnClickListener(new View.OnClickListener() {
+        btnRechercher.setOnClickListener(new View.OnClickListener() { //on fait apl a une methode qui ecoute le click
             @Override
             public void onClick(View view) {
                 // Perform the search and update the ListView
@@ -61,10 +69,10 @@ public class MainActivity extends AppCompatActivity { // la classe main activity
         listviewResults.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int position, long id) {
-                // Get the selected item
+                // visualiser le médicament séléctionné
                 Medicament selectedMedicament = (Medicament) adapterView.getItemAtPosition(position);
-                // Show composition of the selected medicament
-                //afficherCompositionMedicament(selectedMedicament);
+                // voir la composition du médicament séléctionné
+                afficherCompositionMedicament(selectedMedicament);
             }
         }
         );
@@ -74,12 +82,12 @@ public class MainActivity extends AppCompatActivity { // la classe main activity
     //méthode
     private void performSearch() { // une méthode
         String denomination = editTextDenomination.getText().toString().trim();// recup, changer en chaine de caracteres et enlever les espaces
-        String formepharmaceutique = editTextFormepharmaceutique.getText().toString().trim();
+        String formePharmaceutique = editTextFormepharmaceutique.getText().toString().trim();
         String titulaires = editTextTitulaires.getText().toString().trim();
-        String denominationsubstance = editTextDenominationsubstance.getText().toString().trim();
-        String voixadmin = spinnerVoixdadministration.getSelectedItem().toString(); //recupe l'item delectionne
-        List<Medicament> searchResults = dbHelper.searchMedicament(denomination, formepharmaceutique, titulaires, denominationsubstance, voixadmin);
-        MedicamentAdapter adapter = new MedicamentAdapter(this, searchResults);
+        String denominationSubstance = editTextDenominationsubstance.getText().toString().trim();
+        String voiesAdmin = spinnerVoixdadministration.getSelectedItem().toString(); //recupe l'item delectionne
+        List<Medicament> searchResults = dbHelper.searchMedicament(denomination, formePharmaceutique, titulaires, denominationSubstance, voiesAdmin);
+        MedicamentAdapter adapter = new MedicamentAdapter(this, searchResults); //une classe qui adapte les medicaments a la vue pour les afficher
         listviewResults.setAdapter(adapter);
         // Initialize the database helper
     }
@@ -96,7 +104,7 @@ public class MainActivity extends AppCompatActivity { // la classe main activity
     private boolean isUserAuthenticated() { // une methode
         SharedPreferences preferences = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
         String Userstatus = preferences.getString(KEY_USER_STATUS,"");
-        return "Authentification=ok".equals(Userstatus);
+        return "authentification=OK".equals(Userstatus);
     }
     private void cacherClavier() {
         // Obtenez le gestionnaire de fenetre
@@ -109,6 +117,61 @@ public class MainActivity extends AppCompatActivity { // la classe main activity
         if (vueCourante != null) {
             // Masquez le clavier
             imm.hideSoftInputFromWindow(vueCourante.getWindowToken(), 0);
+        }
+    }
+
+    public void deconnexion(View view) {
+        setUserStatus("authentification=KO");
+        Intent authIntent = new Intent(this, Authentification.class);
+        startActivity(authIntent);
+        finish();
+    }
+
+    public void quitter(View view) {
+        finishAffinity();
+    }
+
+    private void setUserStatus(String status) {
+        SharedPreferences sharedPreferences = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(KEY_USER_STATUS, status);
+        editor.apply();
+    }
+
+    private void afficherCompositionMedicament(Medicament medicament) {
+        List<String> composition = dbHelper.getCompositionMedicament(medicament.getCodeCIS());
+        List<String> presentation = dbHelper.getPresentationMedicament(medicament.getCodeCIS());
+
+        // Afficher la composition du médicament dans une boîte de dialogue ou autre méthode d'affichage
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Composition et présentation de " + medicament.getDenomination());
+        StringBuilder boiteText = new StringBuilder();
+
+        if (composition.isEmpty()) {
+            boiteText.append("Pas de composition").append("\n");
+        } else {
+            boiteText.append("Composition : \n");
+            for (String item : composition) {
+                boiteText.append(item).append("\n");
+            }
+
+            if (presentation.isEmpty()) {
+                boiteText.append("Pas de presentation").append("\n");
+            } else {
+                boiteText.append("Présentation : \n");
+                for (String item : presentation) {
+                    boiteText.append(item).append("\n");
+                }
+                builder.setMessage(boiteText.toString());
+            }
+
+            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int which) {
+                    dialog.dismiss();
+                }
+            });
+            AlertDialog dialog = builder.create();
+            dialog.show();
         }
     }
 }
